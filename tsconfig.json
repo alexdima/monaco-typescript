@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+        "module": "amd",
+        "outDir": "out"
+    },
+    "exclude": [
+        "node_modules"
+    ]
+}

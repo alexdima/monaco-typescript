@@ -4,7 +4,8 @@
   "description": "TypeScript and JavaScript language support for Monaco Editor",
   "main": "monaco.editor.contribution.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "node_modules/.bin/tsc -w"
   },
   "author": "",
   "license": "MIT",

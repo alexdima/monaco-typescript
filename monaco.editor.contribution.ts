@@ -17,6 +17,7 @@
 
 // this.MonacoPlugins = this.MonacoPlugins || [];
 // console.log('I AM LOADED!');
+// export var x = 3;
 define(function() {
 	Monaco.Languages.register2({
 		id: 'typescript',
@@ -27,6 +28,7 @@ define(function() {
 
 	Monaco.Languages.onLanguage('typescript', () => {
 		console.log('TS LOADED!!!');
+		// require.
 		require(['vs/language/monaco-typescript/out/mode'], function() {});
 	});
 });

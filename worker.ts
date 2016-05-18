@@ -7,16 +7,11 @@
 import 'vs/text!vs/languages/typescript/common/lib/lib.d.ts';
 import 'vs/text!vs/languages/typescript/common/lib/lib.es6.d.ts';
 import ts = require('./lib/typescriptServices');
-// import URI from 'vs/base/common/uri';
-// import {TPromise} from 'vs/base/common/winjs.base';
-import {TypeScriptWorkerProtocol, IRawModelData} from './typescript';
-// import {IModelContentChangedEvent2} from 'vs/editor/common/editorCommon';
-// import {MirrorModel2} from 'vs/editor/common/model/mirrorModel2';
 
 import TPromise = Monaco.TPromise;
 import worker = monaco.worker;
 
-class TypeScriptWorker /*extends TypeScriptWorkerProtocol*/ implements ts.LanguageServiceHost, TypeScriptWorkerProtocol {
+export class TypeScriptWorker implements ts.LanguageServiceHost {
 
 	// --- model sync -----------------------
 
@@ -24,23 +19,6 @@ class TypeScriptWorker /*extends TypeScriptWorkerProtocol*/ implements ts.Langua
 	private _extraLibs: { [fileName: string]: string } = Object.create(null);
 	private _languageService = ts.createLanguageService(this);
 	private _compilerOptions: ts.CompilerOptions;
-
-	// acceptNewModel(data: IRawModelData): void {
-	// 	this._models[data.url] = new MirrorModel2(URI.parse(data.url),
-	// 		data.value.lines,
-	// 		data.value.EOL, data.versionId);
-	// }
-
-	// acceptModelChanged(uri: string, events: IModelContentChangedEvent2[]): void {
-	// 	const model = this._models[uri];
-	// 	if (model) {
-	// 		model.onEvents(events);
-	// 	}
-	// }
-
-	// acceptRemovedModel(uri: string): void {
-	// 	delete this._models[uri];
-	// }
 
 	// --- default ---------
 
@@ -190,6 +168,6 @@ class TypeScriptWorker /*extends TypeScriptWorkerProtocol*/ implements ts.Langua
 	}
 }
 
-export function create(): TypeScriptWorkerProtocol {
+export function create(): TypeScriptWorker {
 	return new TypeScriptWorker();
 }

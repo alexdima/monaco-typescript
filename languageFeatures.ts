@@ -13,16 +13,18 @@
 // import matches from 'vs/editor/common/modes/languageSelector';
 // import {IMarkerService, IMarkerData} from 'vs/platform/markers/common/markers';
 // import {IModelService} from 'vs/editor/common/services/modelService';
-import {TypeScriptWorkerProtocol, LanguageServiceDefaults} from './typescript';
+import {LanguageServiceDefaults} from './typescript';
 import * as ts from './lib/typescriptServices';
+import {TypeScriptWorker} from './worker';
 
 import TPromise = Monaco.TPromise;
 import URI = Monaco.Uri;
 import IDisposable = Monaco.Editor.IDisposable;
 import languages = Monaco.Languages;
+import Thenable = Monaco.Thenable;
 
 export function register(
-	selector: string, defaults:LanguageServiceDefaults, worker: (first: URI, ...more: URI[]) => TPromise<TypeScriptWorkerProtocol>): IDisposable {
+	selector: string, defaults:LanguageServiceDefaults, worker: (first: URI, ...more: URI[]) => TPromise<TypeScriptWorker>): IDisposable {
 
 	let disposables: IDisposable[] = [];
 	// disposables.push(modes.SuggestRegistry.register(selector, new SuggestAdapter(worker)));
@@ -47,7 +49,7 @@ export function register(
 
 abstract class Adapter {
 
-	constructor(protected _worker: (first:URI, ...more:URI[]) => TPromise<TypeScriptWorkerProtocol>) {
+	constructor(protected _worker: (first:URI, ...more:URI[]) => TPromise<TypeScriptWorker>) {
 
 	}
 
@@ -312,7 +314,7 @@ abstract class Adapter {
 
 class QuickInfoAdapter extends Adapter implements Monaco.Languages.HoverProvider {
 
-	provideHover(model: Monaco.Editor.IModel, position: Monaco.Editor.IEditorPosition): TPromise<Monaco.Languages.Hover> {
+	provideHover(model: Monaco.Editor.IModel, position: Monaco.Editor.IEditorPosition, cancellationToken): Thenable<Monaco.Languages.Hover> {
 		return this._worker(model.getAssociatedResource()).then(worker => {
 			return worker.getQuickInfoAtPosition(model.getAssociatedResource().toString(), this._positionToOffset(model, position));
 		}).then(info => {

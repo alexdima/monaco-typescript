@@ -4,41 +4,33 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-// import URI from 'vs/base/common/uri';
-// import {TPromise} from 'vs/base/common/winjs.base';
-// import {IDisposable, dispose} from 'vs/base/common/lifecycle';
-// import {DefaultWorkerFactory} from 'vs/base/worker/defaultWorkerFactory';
-// import {SimpleWorkerClient} from 'vs/base/common/worker/simpleWorker';
-// import {IModelService} from 'vs/editor/common/services/modelService';
-// import {EditorModelManager} from 'vs/editor/common/services/editorWorkerServiceImpl';
-import {LanguageServiceMode, LanguageServiceDefaults, TypeScriptWorkerProtocol} from './typescript';
+import {LanguageServiceMode, LanguageServiceDefaults} from './typescript';
+import {TypeScriptWorker} from './worker';
 
 import TPromise = Monaco.TPromise;
+import IMonacoWebWorker = Monaco.IMonacoWebWorker;
+import createWebWorker = Monaco.createWebWorker;
+import IDisposable = Monaco.Editor.IDisposable;
+import Uri = Monaco.Uri;
 
-class WorkerManager {
+export class WorkerManager {
 
-	// private _modelService: IModelService;
 	private _defaults: LanguageServiceDefaults;
-	private _worker: Monaco.IMonacoWebWorker<TypeScriptWorkerProtocol>;
-	private _client: TPromise<TypeScriptWorkerProtocol>;
-	// private _client: TPromise<{ worker: TypeScriptWorkerProtocol; manager: EditorModelManager }> = null;
-	// private _clientDispose: IDisposable[] = [];
-	// private _factory = new DefaultWorkerFactory();
+	private _worker: IMonacoWebWorker<TypeScriptWorker>;
+	private _client: TPromise<TypeScriptWorker>;
 
 	constructor(defaults: LanguageServiceDefaults) {
-		// this._modelService = modelService;
 		this._defaults = defaults;
 		this._worker = null;
 	}
 
-	private _createClient(): TPromise<TypeScriptWorkerProtocol> {
+	private _createClient(): TPromise<TypeScriptWorker> {
 		// TODO: stop when idle
-		
-		this._worker = Monaco.createWebWorker<TypeScriptWorkerProtocol>({
-			moduleId: 'vs/language/monaco-typescript/out/worker',//require.toUrl()
+		this._worker = createWebWorker<TypeScriptWorker>({
+			moduleId: 'vs/language/monaco-typescript/out/worker',
 		});
 
-		let configChangeListener: Monaco.Editor.IDisposable = null;
+		let configChangeListener: IDisposable = null;
 
 		const stopWorker = () => {
 			configChangeListener.dispose();
@@ -49,26 +41,13 @@ class WorkerManager {
 
 		configChangeListener = this._defaults.onDidChange(stopWorker);
 
-		let _client:TypeScriptWorkerProtocol = null;
+		let _client:TypeScriptWorker = null;
 		return this._worker.getProxy().then((client) => {
 			_client = client;
 		}).then(_ => {
 			const {compilerOptions, extraLibs} = this._defaults;
 			return _client.acceptDefaults(compilerOptions, extraLibs);
 		}).then(_ => _client);
-
-		// // let worker
-
-		// const client = new SimpleWorkerClient<TypeScriptWorkerProtocol>(this._factory, 'vs/languages/typescript/common/worker', TypeScriptWorkerProtocol);
-		// const manager = new EditorModelManager(client.get(), this._modelService, true);
-
-		// this._clientDispose.push(manager);
-		// this._clientDispose.push(client);
-
-		// const stopWorker = () => {
-		// 	this._clientDispose = dispose(this._clientDispose);
-		// 	this._client = null;
-		// };
 
 		// // stop worker after being idle
 		// const handle = setInterval(() => {
@@ -87,12 +66,13 @@ class WorkerManager {
 		// return worker.acceptDefaults(compilerOptions, extraLibs).then(() => ({ worker, manager }));
 	}
 
-	// dispose(): void {
+	dispose(): void {
+		console.log('I SHOULD DISPOSE??!?!!?');
 	// 	this._clientDispose = dispose(this._clientDispose);
 	// 	this._client = null;
-	// }
+	}
 
-	getLanguageServiceWorker(...resources: Monaco.Uri[]): TPromise<TypeScriptWorkerProtocol> {
+	getLanguageServiceWorker(...resources: Uri[]): TPromise<TypeScriptWorker> {
 		if (!this._client) {
 			this._client = this._createClient();
 		}
@@ -101,8 +81,4 @@ class WorkerManager {
 			return this._worker.withSyncedResources(resources).then(_ => data)
 		});
 	}
-}
-
-export function create(defaults: LanguageServiceDefaults): LanguageServiceMode {
-	return new WorkerManager(defaults);
 }

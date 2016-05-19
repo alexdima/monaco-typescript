@@ -2,6 +2,243 @@
 // Some types were replaced with `any` to introduce cut-off points
 // in order to not bring in our entire TypeScript universe
 
+declare module monaco.worker {
+
+	export interface IMirrorModel {
+		uri: Monaco.Uri;
+		version: number;
+		getText(): string;
+	}
+
+	export var mirrorModels: IMirrorModel[];
+
+}
+
+// /**
+//  * Thenable is a common denominator between ES6 promises, Q, jquery.Deferred, WinJS.Promise,
+//  * and others. This API makes no assumption about what promise libary is being used which
+//  * enables reusing existing code without migrating to a specific promise implementation. Still,
+//  * we recommend the use of native promises which are available in VS Code.
+//  */
+// interface Thenable<R> {
+// 	/**
+// 	* Attaches callbacks for the resolution and/or rejection of the Promise.
+// 	* @param onfulfilled The callback to execute when the Promise is resolved.
+// 	* @param onrejected The callback to execute when the Promise is rejected.
+// 	* @returns A Promise for the completion of which ever callback is executed.
+// 	*/
+// 	then<TResult>(onfulfilled?: (value: R) => TResult | Thenable<TResult>, onrejected?: (reason: any) => TResult | Thenable<TResult>): Thenable<TResult>;
+// 	then<TResult>(onfulfilled?: (value: R) => TResult | Thenable<TResult>, onrejected?: (reason: any) => void): Thenable<TResult>;
+// }
+
+declare module Monaco {
+
+	interface Thenable<R> {
+	/**
+	* Attaches callbacks for the resolution and/or rejection of the Promise.
+	* @param onfulfilled The callback to execute when the Promise is resolved.
+	* @param onrejected The callback to execute when the Promise is rejected.
+	* @returns A Promise for the completion of which ever callback is executed.
+	*/
+	then<TResult>(onfulfilled?: (value: R) => TResult | Thenable<TResult>, onrejected?: (reason: any) => TResult | Thenable<TResult>): Thenable<TResult>;
+	then<TResult>(onfulfilled?: (value: R) => TResult | Thenable<TResult>, onrejected?: (reason: any) => void): Thenable<TResult>;
+}
+
+	export class Uri {
+
+		/**
+		 * Create an URI from a file system path. The [scheme](#Uri.scheme)
+		 * will be `file`.
+		 *
+		 * @param path A file system or UNC path.
+		 * @return A new Uri instance.
+		 */
+		static file(path: string): Uri;
+
+		/**
+		 * Create an URI from a string. Will throw if the given value is not
+		 * valid.
+		 *
+		 * @param value The string value of an Uri.
+		 * @return A new Uri instance.
+		 */
+		static parse(value: string): Uri;
+
+		/**
+		 * Scheme is the `http` part of `http://www.msft.com/some/path?query#fragment`.
+		 * The part before the first colon.
+		 */
+		scheme: string;
+
+		/**
+		 * Authority is the `www.msft.com` part of `http://www.msft.com/some/path?query#fragment`.
+		 * The part between the first double slashes and the next slash.
+		 */
+		authority: string;
+
+		/**
+		 * Path is the `/some/path` part of `http://www.msft.com/some/path?query#fragment`.
+		 */
+		path: string;
+
+		/**
+		 * Query is the `query` part of `http://www.msft.com/some/path?query#fragment`.
+		 */
+		query: string;
+
+		/**
+		 * Fragment is the `fragment` part of `http://www.msft.com/some/path?query#fragment`.
+		 */
+		fragment: string;
+
+		/**
+		 * The string representing the corresponding file system path of this Uri.
+		 *
+		 * Will handle UNC paths and normalize windows drive letters to lower-case. Also
+		 * uses the platform specific path separator. Will *not* validate the path for
+		 * invalid characters and semantics. Will *not* look at the scheme of this Uri.
+		 */
+		fsPath: string;
+
+		/**
+		 * Returns a string representation of this Uri. The representation and normalization
+		 * of a URI depends on the scheme. The resulting string can be safely used with
+		 * [Uri.parse](#Uri.parse).
+		 *
+		 * @param skipEncoding Do not percentage-encode the result, defaults to `false`. Note that
+		 *	the `#` and `?` characters occuring in the path will always be encoded.
+		 * @returns A string representation of this Uri.
+		 */
+		toString(skipEncoding?: boolean): string;
+
+		/**
+		 * Returns a JSON representation of this Uri.
+		 *
+		 * @return An object.
+		 */
+		toJSON(): any;
+	}
+
+	export interface IMonacoWebWorker<T> {
+		dispose(): void;
+		getProxy(): TPromise<T>;
+		withSyncedResources(resources: Uri[]): TPromise<void>;
+	}
+
+	export function createWebWorker<T>(opts:{
+		moduleId: string;
+		// modelSyncFilter?: (model:Editor.IModel)=>boolean;
+	}): IMonacoWebWorker<T>;
+
+	export interface ProgressCallback {
+		(progress: any): any;
+	}
+
+	export class TPromise<V> {
+
+		then<U>(success?: (value: V) => TPromise<U>, error?: (err: any) => TPromise<U>, progress?: ProgressCallback): TPromise<U>;
+		then<U>(success?: (value: V) => TPromise<U>, error?: (err: any) => U, progress?: ProgressCallback): TPromise<U>;
+		then<U>(success?: (value: V) => U, error?: (err: any) => TPromise<U>, progress?: ProgressCallback): TPromise<U>;
+		then<U>(success?: (value: V) => U, error?: (err: any) => U, progress?: ProgressCallback): TPromise<U>;
+
+		done(success?: (value: V) => void , error?: (err: any) => any, progress?: ProgressCallback): void;
+		cancel(): void;
+
+
+		public static as<ValueType>(value:ValueType):TPromise<ValueType>;
+		public static is(value: any): value is TPromise<any>;
+		public static timeout(delay:number):TPromise<void>;
+		public static join<ValueType>(promises:TPromise<ValueType>[]):TPromise<ValueType[]>;
+		public static join<ValueType>(promises: {[n:string]:TPromise<ValueType>}):TPromise<{[n:string]:ValueType}>;
+		public static any<ValueType>(promises:TPromise<ValueType>[]):TPromise<{ key:string; value:TPromise<ValueType>;}>;
+		public static wrapError<ValueType>(error:any):TPromise<ValueType>;
+
+	}
+
+	export interface Event<T> {
+		(listener: (e: T) => any): Editor.IDisposable;
+	}
+
+	export class Emitter<T> {
+		constructor();
+		event: Event<T>;
+		fire(event?: T): void;
+		dispose(): void;
+	}
+}
+
+declare module Monaco.Languages {
+
+	export function register2(a1:any): void; // TODO
+	export function onLanguage(a1:any, a2:any): void; // TODO
+	export function registerTokensProvider(language:string, provider:ITokenizationSupport2): Editor.IDisposable;
+	export function registerHoverProvider(language:string, provider:HoverProvider): Editor.IDisposable;
+
+	export interface IToken2 {
+		startIndex: number;
+		scopes: string|string[];
+	}
+	export interface ILineTokens2 {
+		tokens: IToken2[];
+		endState: IState2;
+		retokenize?: TPromise<void>;
+	}
+	export interface IState2 {
+		clone():IState2;
+		equals(other:IState2):boolean;
+	}
+	export interface ITokenizationSupport2 {
+		getInitialState(): IState2;
+		tokenize(line:string, state:IState2): ILineTokens2;
+	}
+
+	// export type MarkedString = string | { language: string; value: string };
+
+	/**
+	 * A cancellation token is passed to an asynchronous or long running
+	 * operation to request cancellation, like cancelling a request
+	 * for completion items because the user continued to type.
+	 *
+	 * To get an instance of a `CancellationToken` use a
+	 * [CancellationTokenSource](#CancellationTokenSource).
+	 */
+	export interface CancellationToken {
+
+		/**
+		 * Is `true` when the token has been cancelled, `false` otherwise.
+		 */
+		isCancellationRequested: boolean;
+
+		/**
+		 * An [event](#Event) which fires upon cancellation.
+		 */
+		onCancellationRequested: Event<any>;
+	}
+
+	/**
+	 * A hover represents additional information for a symbol or word. Hovers are
+	 * rendered in a tooltip-like widget.
+	 */
+	export interface Hover {
+
+		/**
+		 * The contents of this hover.
+		 */
+		htmlContent: Editor.IHTMLContentElement[];
+
+		/**
+		 * The range to which this hover applies. When missing, the
+		 * editor will use the range at the current position or the
+		 * current position itself.
+		 */
+		range: Editor.IRange;
+	}
+
+	export interface HoverProvider {
+		provideHover(model: Editor.IModel, position: Editor.IEditorPosition, token: CancellationToken): Hover | Thenable<Hover>;
+	}
+}
+
 declare module Monaco.Editor {
 
 	export function create(domElement: HTMLElement, options: IEditorConstructionOptions, services?: any): ICodeEditor;
@@ -49,20 +286,7 @@ declare module Monaco.Editor {
 // vs/base/common/winjs.base.d.ts
 // ========================================================================
 
-export interface ProgressCallback {
-	(progress: any): any;
-}
 
-export interface TPromise<V> {
-
-	then<U>(success?: (value: V) => TPromise<U>, error?: (err: any) => TPromise<U>, progress?: ProgressCallback): TPromise<U>;
-	then<U>(success?: (value: V) => TPromise<U>, error?: (err: any) => U, progress?: ProgressCallback): TPromise<U>;
-	then<U>(success?: (value: V) => U, error?: (err: any) => TPromise<U>, progress?: ProgressCallback): TPromise<U>;
-	then<U>(success?: (value: V) => U, error?: (err: any) => U, progress?: ProgressCallback): TPromise<U>;
-
-	done(success?: (value: V) => void , error?: (err: any) => any, progress?: ProgressCallback): void;
-	cancel(): void;
-}
 
 
 
@@ -202,13 +426,15 @@ export interface IConstructorSignature2<A1, A2, T> {
 	// vs/editor/common/modes.ts
 	// ========================================================================
 	
-	export interface IState {
-		clone():IState;
-		equals(other:IState):boolean;
-		getMode():IMode;
-		getStateData(): IState;
-		setStateData(state:IState):void;
-	}
+	
+
+	// export interface IState {
+	// 	clone():IState;
+	// 	equals(other:IState):boolean;
+	// 	getMode():IMode;
+	// 	getStateData(): IState;
+	// 	setStateData(state:IState):void;
+	// }
 	export interface IToken {
 		startIndex:number;
 		type:string;
@@ -218,12 +444,12 @@ export interface IConstructorSignature2<A1, A2, T> {
 		startIndex: number;
 		mode: IMode;
 	}
-	export interface ILineTokens {
-		tokens: IToken[];
-		actualStopOffset: number;
-		endState: IState;
-		modeTransitions: IModeTransition[];
-	}
+	// export interface ILineTokens {
+	// 	tokens: IToken[];
+	// 	actualStopOffset: number;
+	// 	endState: IState;
+	// 	modeTransitions: IModeTransition[];
+	// }
 	export interface ILineContext {
 		getLineContent(): string;
 		modeTransitions: IModeTransition[];

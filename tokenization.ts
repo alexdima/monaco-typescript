@@ -5,14 +5,13 @@
 'use strict';
 
 import ts = require('./lib/typescriptServices');
-import languages = Monaco.Languages;
 
 export enum Language {
 	TypeScript,
 	EcmaScript5
 }
 
-export function createTokenizationSupport(language:Language): languages.ITokenizationSupport2 {
+export function createTokenizationSupport(language:Language): monaco.languages.ITokenizationSupport2 {
 
 	var classifier = ts.createClassifier(),
 		bracketTypeTable = language === Language.TypeScript ? tsBracketTypeTable : jsBracketTypeTable,
@@ -24,7 +23,7 @@ export function createTokenizationSupport(language:Language): languages.ITokeniz
 	};
 }
 
-class State implements languages.IState2 {
+class State implements monaco.languages.IState2 {
 
 	public language: Language;
 	public eolState: ts.EndOfLineState;
@@ -40,7 +39,7 @@ class State implements languages.IState2 {
 		return new State(this.language, this.eolState, this.inJsDocComment);
 	}
 
-	public equals(other:languages.IState2):boolean {
+	public equals(other:monaco.languages.IState2):boolean {
 		if(other === this) {
 			return true;
 		}
@@ -58,11 +57,11 @@ class State implements languages.IState2 {
 }
 
 function tokenize(bracketTypeTable: { [i: number]: string }, tokenTypeTable: { [i: number]: string },
-	classifier: ts.Classifier, state: State, text: string): languages.ILineTokens2 {
+	classifier: ts.Classifier, state: State, text: string): monaco.languages.ILineTokens2 {
 
 	// Create result early and fill in tokens
 	var ret = {
-		tokens: <languages.IToken2[]>[],
+		tokens: <monaco.languages.IToken2[]>[],
 		endState: new State(state.language, ts.EndOfLineState.None, false)
 	};
 

@@ -4,10 +4,7 @@ import {LanguageServiceDefaults, typeScriptDefaults, javaScriptDefaults, Languag
 import {WorkerManager} from './workerManager';
 import {register} from './languageFeatures';
 
-
-import languages = Monaco.Languages;
-import IDisposable = Monaco.Editor.IDisposable;
-
+import IDisposable = monaco.IDisposable;
 
 function setupMode(defaults:LanguageServiceDefaults, modeId:string, language:Language): void {
 
@@ -26,7 +23,7 @@ function setupMode(defaults:LanguageServiceDefaults, modeId:string, language:Lan
 	// disposables.push(modeService.registerRichEditSupport(modeId, richEditConfiguration));
     
     
-    languages.registerTokensProvider(modeId, createTokenizationSupport(language));
+    monaco.languages.registerTokensProvider(modeId, createTokenizationSupport(language));
 }
 
 setupMode(

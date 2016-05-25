@@ -17,19 +17,24 @@ import {LanguageServiceDefaults} from './typescript';
 import * as ts from './lib/typescriptServices';
 import {TypeScriptWorker} from './worker';
 
-import TPromise = Monaco.TPromise;
-import URI = Monaco.Uri;
-import IDisposable = Monaco.Editor.IDisposable;
-import languages = Monaco.Languages;
-import Thenable = Monaco.Thenable;
+import Uri = monaco.Uri;
+import Promise = monaco.Promise;
+import IDisposable = monaco.IDisposable;
+import Thenable = monaco.Thenable;
+
+// import TPromise = Monaco.TPromise;
+// import URI = Monaco.Uri;
+// import IDisposable = Monaco.Editor.IDisposable;
+// import languages = Monaco.Languages;
+// import Thenable = Monaco.Thenable;
 
 export function register(
-	selector: string, defaults:LanguageServiceDefaults, worker: (first: URI, ...more: URI[]) => TPromise<TypeScriptWorker>): IDisposable {
+	selector: string, defaults:LanguageServiceDefaults, worker: (first: Uri, ...more: Uri[]) => Promise<TypeScriptWorker>): IDisposable {
 
 	let disposables: IDisposable[] = [];
 	// disposables.push(modes.SuggestRegistry.register(selector, new SuggestAdapter(worker)));
 	// disposables.push(modes.ParameterHintsRegistry.register(selector, new ParameterHintsAdapter(worker)));
-	disposables.push(languages.registerHoverProvider(selector, new QuickInfoAdapter(worker)));
+	disposables.push(monaco.languages.registerHoverProvider(selector, new QuickInfoAdapter(worker)));
 	// disposables.push(modes.ExtraInfoRegistry.register(selector, new QuickInfoAdapter(worker)));
 	// disposables.push(modes.OccurrencesRegistry.register(selector, new OccurrencesAdapter(worker)));
 	// disposables.push(modes.DeclarationRegistry.register(selector, new DeclarationAdapter(worker)));
@@ -49,11 +54,10 @@ export function register(
 
 abstract class Adapter {
 
-	constructor(protected _worker: (first:URI, ...more:URI[]) => TPromise<TypeScriptWorker>) {
-
+	constructor(protected _worker: (first:Uri, ...more:Uri[]) => Promise<TypeScriptWorker>) {
 	}
 
-	protected _positionToOffset(model: Monaco.Editor.IModel, position: Monaco.Editor.IPosition): number {
+	protected _positionToOffset(model: monaco.editor.IReadOnlyModel, position: monaco.IPosition): number {
 		// const model = this._modelService.getModel(resource);
 		let result = position.column - 1;
 		for (let i = 1; i < position.lineNumber; i++) {
@@ -62,7 +66,7 @@ abstract class Adapter {
 		return result;
 	}
 
-	protected _offsetToPosition(model: Monaco.Editor.IModel, offset: number): Monaco.Editor.IPosition {
+	protected _offsetToPosition(model: monaco.editor.IReadOnlyModel, offset: number): monaco.IPosition {
 		// const model = this._modelService.getModel(resource);
 		let lineNumber = 1;
 		while (true) {
@@ -76,7 +80,7 @@ abstract class Adapter {
 		return { lineNumber, column: 1 + offset };
 	}
 
-	protected _textSpanToRange(model: Monaco.Editor.IModel, span: ts.TextSpan): Monaco.Editor.IRange {
+	protected _textSpanToRange(model: monaco.editor.IReadOnlyModel, span: ts.TextSpan): monaco.IRange {
 		let p1 = this._offsetToPosition(model, span.start);
 		let p2 = this._offsetToPosition(model, span.start + span.length);
 		let {lineNumber: startLineNumber, column: startColumn} = p1;
@@ -312,16 +316,17 @@ abstract class Adapter {
 
 // --- hover ------
 
-class QuickInfoAdapter extends Adapter implements Monaco.Languages.HoverProvider {
+class QuickInfoAdapter extends Adapter implements monaco.languages.HoverProvider {
 
-	provideHover(model: Monaco.Editor.IModel, position: Monaco.Editor.IEditorPosition, cancellationToken): Thenable<Monaco.Languages.Hover> {
-		return this._worker(model.getAssociatedResource()).then(worker => {
-			return worker.getQuickInfoAtPosition(model.getAssociatedResource().toString(), this._positionToOffset(model, position));
+	provideHover(model: monaco.editor.IReadOnlyModel, position: monaco.Position, cancellationToken: monaco.CancellationToken): Thenable<monaco.languages.Hover> {
+		// TODO@Alex: wire cancelation token
+		return this._worker(model.uri).then(worker => {
+			return worker.getQuickInfoAtPosition(model.uri.toString(), this._positionToOffset(model, position));
 		}).then(info => {
 			if (!info) {
 				return;
 			}
-			return <Monaco.Languages.Hover>{
+			return {
 				range: this._textSpanToRange(model, info.textSpan),
 				htmlContent: [ts.displayPartsToString(info.displayParts)]
 			};

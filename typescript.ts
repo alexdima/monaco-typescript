@@ -7,11 +7,10 @@
 import * as ts from './lib/typescriptServices';
 import {TypeScriptWorker} from './worker';
 
-import Event = Monaco.Event;
-import Emitter = Monaco.Emitter;
-import TPromise = Monaco.TPromise;
-import Uri = Monaco.Uri;
-import IDisposable = Monaco.Editor.IDisposable;
+import Emitter = monaco.Emitter;
+import Promise = monaco.Promise;
+import Uri = monaco.Uri;
+import IDisposable = monaco.IDisposable;
 
 // --- TypeScript configuration and defaults ---------
 
@@ -33,7 +32,7 @@ export class LanguageServiceDefaults {
 		this.setDiagnosticsOptions(diagnosticsOptions);
 	}
 
-	get onDidChange(): Event<LanguageServiceDefaults>{
+	get onDidChange(): monaco.IEvent<LanguageServiceDefaults>{
 		return this._onDidChange.event;
 	}
 
@@ -93,5 +92,5 @@ export const javaScriptDefaults = new LanguageServiceDefaults(
 // --- TypeScript worker protocol ---------
 
 export interface LanguageServiceMode {
-	getLanguageServiceWorker(...resources: Uri[]): TPromise<TypeScriptWorker>;
+	getLanguageServiceWorker(...resources: Uri[]): Promise<TypeScriptWorker>;
 }

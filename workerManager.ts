@@ -7,26 +7,24 @@
 import {LanguageServiceMode, LanguageServiceDefaults} from './typescript';
 import {TypeScriptWorker} from './worker';
 
-import TPromise = Monaco.TPromise;
-import IMonacoWebWorker = Monaco.IMonacoWebWorker;
-import createWebWorker = Monaco.createWebWorker;
-import IDisposable = Monaco.Editor.IDisposable;
-import Uri = Monaco.Uri;
+import Promise = monaco.Promise;
+import IDisposable = monaco.IDisposable;
+import Uri = monaco.Uri;
 
 export class WorkerManager {
 
 	private _defaults: LanguageServiceDefaults;
-	private _worker: IMonacoWebWorker<TypeScriptWorker>;
-	private _client: TPromise<TypeScriptWorker>;
+	private _worker: monaco.editor.MonacoWebWorker<TypeScriptWorker>;
+	private _client: Promise<TypeScriptWorker>;
 
 	constructor(defaults: LanguageServiceDefaults) {
 		this._defaults = defaults;
 		this._worker = null;
 	}
 
-	private _createClient(): TPromise<TypeScriptWorker> {
+	private _createClient(): Promise<TypeScriptWorker> {
 		// TODO: stop when idle
-		this._worker = createWebWorker<TypeScriptWorker>({
+		this._worker = monaco.editor.createWebWorker<TypeScriptWorker>({
 			moduleId: 'vs/language/monaco-typescript/out/worker',
 		});
 
@@ -72,7 +70,7 @@ export class WorkerManager {
 	// 	this._client = null;
 	}
 
-	getLanguageServiceWorker(...resources: Uri[]): TPromise<TypeScriptWorker> {
+	getLanguageServiceWorker(...resources: Uri[]): Promise<TypeScriptWorker> {
 		if (!this._client) {
 			this._client = this._createClient();
 		}

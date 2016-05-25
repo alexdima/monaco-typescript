@@ -75,8 +75,11 @@ export class WorkerManager {
 			this._client = this._createClient();
 		}
 
-		return this._client.then((data) => {
+		// create a new promise to avoid cancellation
+		return new monaco.Promise((c, e) => {
+			this._client.then((data) => {
 			return this._worker.withSyncedResources(resources).then(_ => data)
-		});
+			}).then(c, e);
+		}, () => {});
 	}
 }

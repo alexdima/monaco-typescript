@@ -14,21 +14,89 @@ declare module monaco.worker {
 declare module monaco.languages {
 
 
+    export function registerLanguageConfiguration(languageId: string, configuration: IRichEditConfiguration): IDisposable;
+
     export function registerTokensProvider(languageId: string, support: ITokenizationSupport2): IDisposable;
+
+    export function registerReferenceProvider(languageId: string, support: ReferenceProvider): IDisposable;
+
+    export function registerRenameProvider(languageId: string, support: RenameProvider): IDisposable;
+
+    export function registerSignatureHelpProvider(languageId: string, support: SignatureHelpProvider): IDisposable;
 
     export function registerHoverProvider(languageId: string, support: HoverProvider): IDisposable;
 
+    export function registerDocumentSymbolProvider(languageId: string, support: DocumentSymbolProvider): IDisposable;
+
+    export function registerDocumentHighlightProvider(languageId: string, support: DocumentHighlightProvider): IDisposable;
+
+    export function registerDefinitionProvider(languageId: string, support: DefinitionProvider): IDisposable;
+
+    export function registerCodeLensProvider(languageId: string, support: CodeLensProvider): IDisposable;
+
+    export function registerCodeActionProvider(languageId: string, support: CodeActionProvider): IDisposable;
+
+    export function registerDocumentFormattingEditProvider(languageId: string, support: DocumentFormattingEditProvider): IDisposable;
+
+    export function registerDocumentRangeFormattingEditProvider(languageId: string, support: DocumentRangeFormattingEditProvider): IDisposable;
+
+    export function registerOnTypeFormattingEditProvider(languageId: string, support: OnTypeFormattingEditProvider): IDisposable;
+
+    export function registerLinkProvider(languageId: string, support: LinkProvider): IDisposable;
+
     export function registerMonarchStandaloneLanguage(language: ILanguageExtensionPoint, defModule: string): void;
 
-    export function registerStandaloneLanguage(language: ILanguageExtensionPoint, defModule: string): void;
-
-    export function registerStandaloneLanguage2(language: ILanguageExtensionPoint): void;
+    export function register(language: ILanguageExtensionPoint): void;
 
     export function onLanguage(languageId: string, callback: () => void): IDisposable;
 
-    export enum MutableSupport {
-        RichEditSupport = 1,
-        TokenizationSupport = 2,
+    export interface CommentRule {
+        lineComment?: string;
+        blockComment?: CharacterPair;
+    }
+
+    export interface IRichEditConfiguration {
+        comments?: CommentRule;
+        brackets?: CharacterPair[];
+        wordPattern?: RegExp;
+        indentationRules?: IIndentationRules;
+        onEnterRules?: IOnEnterRegExpRules[];
+        __electricCharacterSupport?: IBracketElectricCharacterContribution;
+        __characterPairSupport?: ICharacterPairContribution;
+    }
+
+    export interface IIndentationRules {
+        decreaseIndentPattern: RegExp;
+        increaseIndentPattern: RegExp;
+        indentNextLinePattern?: RegExp;
+        unIndentedLinePattern?: RegExp;
+    }
+
+    export interface IOnEnterRegExpRules {
+        beforeText: RegExp;
+        afterText?: RegExp;
+        action: IEnterAction;
+    }
+
+    export interface IBracketElectricCharacterContribution {
+        docComment?: IDocComment;
+        caseInsensitive?: boolean;
+        embeddedElectricCharacters?: string[];
+    }
+
+    /**
+     * Definition of documentation comments (e.g. Javadoc/JSdoc)
+     */
+    export interface IDocComment {
+        scope: string;
+        open: string;
+        lineStart: string;
+        close?: string;
+    }
+
+    export interface ICharacterPairContribution {
+        autoClosingPairs: IAutoClosingPairConditional[];
+        surroundingPairs?: IAutoClosingPair[];
     }
 
     export interface IMode {
@@ -242,6 +310,33 @@ declare module monaco.languages {
         resolveCodeLens?(model: editor.IReadOnlyModel, codeLens: ICodeLensSymbol, token: CancellationToken): ICodeLensSymbol | Thenable<ICodeLensSymbol>;
     }
 
+    export type CharacterPair = [string, string];
+
+    export interface IAutoClosingPairConditional extends IAutoClosingPair {
+        notIn?: string[];
+    }
+
+    export enum IndentAction {
+        None = 0,
+        Indent = 1,
+        IndentOutdent = 2,
+        Outdent = 3,
+    }
+
+    /**
+     * An action the editor executes when 'enter' is being pressed
+     */
+    export interface IEnterAction {
+        indentAction: IndentAction;
+        appendText?: string;
+        removeText?: number;
+    }
+
+    export interface IAutoClosingPair {
+        open: string;
+        close: string;
+    }
+
     export interface ILanguageExtensionPoint {
         id: string;
         extensions?: string[];
@@ -259,14 +354,6 @@ declare module monaco.languages {
 declare module monaco.editor {
 
 
-    export interface IEditorConstructionOptions extends ICodeEditorWidgetCreationOptions {
-        value?: string;
-        mode?: string;
-    }
-
-    export interface IDiffEditorConstructionOptions extends IDiffEditorOptions {
-    }
-
     export function setupServices(services: IEditorOverrideServices): IEditorOverrideServices;
 
     export function create(domElement: HTMLElement, options: IEditorConstructionOptions, services: IEditorOverrideServices): ICodeEditor;
@@ -274,6 +361,21 @@ declare module monaco.editor {
     export function createDiffEditor(domElement: HTMLElement, options: IDiffEditorConstructionOptions, services: IEditorOverrideServices): IDiffEditor;
 
     export function createModel(value: string, mode: string | ILanguage | languages.IMode, associatedResource?: Uri | string): IModel;
+
+    export function getModels(): IModel[];
+
+    export function getModel(uri: Uri): IModel;
+
+    export function onDidCreateModel(listener: (model: IModel) => void): IDisposable;
+
+    export function onWillDisposeModel(listener: (model: IModel) => void): IDisposable;
+
+    export function onDidChangeModelMode(listener: (e: {
+        model: IModel;
+        oldModeId: string;
+    }) => void): IDisposable;
+
+    export function setMarkers(model: IModel, owner: string, markers: IMarkerData[]): void;
 
     export function getOrCreateMode(modeId: string): Promise<languages.IMode>;
 
@@ -297,7 +399,26 @@ declare module monaco.editor {
 
     export function colorizeModelLine(model: IModel, lineNumber: number, tabSize?: number): string;
 
+    export interface IEditorConstructionOptions extends ICodeEditorWidgetCreationOptions {
+        value?: string;
+        mode?: string;
+    }
+
+    export interface IDiffEditorConstructionOptions extends IDiffEditorOptions {
+    }
+
     export interface IEditorOverrideServices {
+    }
+
+    export interface IMarkerData {
+        code?: string;
+        severity: Severity;
+        message: string;
+        source?: string;
+        startLineNumber: number;
+        startColumn: number;
+        endLineNumber: number;
+        endColumn: number;
     }
 
     export interface IColorizerOptions {
@@ -339,25 +460,11 @@ declare module monaco {
         dispose(): void;
     }
 
-    /**
-     * A cancellation token is passed to an asynchronous or long running
-     * operation to request cancellation, like cancelling a request
-     * for completion items because the user continued to type.
-     *
-     * To get an instance of a `CancellationToken` use a
-     * [CancellationTokenSource](#CancellationTokenSource).
-     */
-    export interface CancellationToken {
-
-        /**
-         * Is `true` when the token has been cancelled, `false` otherwise.
-         */
-        isCancellationRequested: boolean;
-
-        /**
-         * An [event](#Event) which fires upon cancellation.
-         */
-        onCancellationRequested: IEvent<any>;
+    export enum Severity {
+        Ignore = 0,
+        Info = 1,
+        Warning = 2,
+        Error = 3,
     }
 
 
@@ -401,6 +508,17 @@ declare module monaco {
         public static join<ValueType>(promises: { [n: string]: Promise<ValueType> }): Promise<{ [n: string]: ValueType }>;
         public static any<ValueType>(promises: Promise<ValueType>[]): Promise<{ key: string; value: Promise<ValueType>; }>;
         public static wrapError<ValueType>(error: any): Promise<ValueType>;
+    }
+
+    export class CancellationTokenSource {
+        token: CancellationToken;
+        cancel(): void;
+        dispose(): void;
+    }
+
+    export interface CancellationToken {
+        isCancellationRequested: boolean;
+        onCancellationRequested: IEvent<any>;
     }
     /**
      * Uniform Resource Identifier (Uri) http://tools.ietf.org/html/rfc3986.

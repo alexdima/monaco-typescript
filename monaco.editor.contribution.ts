@@ -4,35 +4,32 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-declare var define;
-declare var require;
+import * as mode from './mode';
 
-define(function() {
-	monaco.languages.register({
-		id: 'typescript',
-		extensions: ['.ts'],
-		aliases: ['TypeScript', 'ts', 'typescript'],
-		mimetypes: ['text/typescript']
-	});
+declare var require:<T>(moduleId:[string], callback:(module:T)=>void)=>void;
 
-	monaco.languages.register({
-		id: 'javascript',
-		extensions: ['.js', '.es6'],
-		firstLine: '^#!.*\\bnode',
-		filenames: ['jakefile'],
-		aliases: ['JavaScript', 'javascript', 'js'],
-		mimetypes: ['text/javascript'],
-	});
+function withMode(callback:(module:typeof mode)=>void): void {
+	require<typeof mode>(['vs/language/monaco-typescript/out/mode'], callback);
+}
 
-	let modeLoaded = false;
-	let loadMode = () => {
-		if (modeLoaded) {
-			return;
-		}
-		modeLoaded = true;
-		require(['vs/language/monaco-typescript/out/mode'], function() {});
-	};
+monaco.languages.register({
+	id: 'typescript',
+	extensions: ['.ts'],
+	aliases: ['TypeScript', 'ts', 'typescript'],
+	mimetypes: ['text/typescript']
+});
+monaco.languages.onLanguage('typescript', () => {
+	withMode((mode) => mode.setupTypeScript());
+});
 
-	monaco.languages.onLanguage('typescript', loadMode);
-	monaco.languages.onLanguage('javascript', loadMode);
+monaco.languages.register({
+	id: 'javascript',
+	extensions: ['.js', '.es6'],
+	firstLine: '^#!.*\\bnode',
+	filenames: ['jakefile'],
+	aliases: ['JavaScript', 'javascript', 'js'],
+	mimetypes: ['text/javascript'],
+});
+monaco.languages.onLanguage('javascript', () => {
+	withMode((mode) => mode.setupJavaScript());
 });

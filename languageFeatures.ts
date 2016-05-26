@@ -16,30 +16,7 @@ import Promise = monaco.Promise;
 import CancellationToken = monaco.CancellationToken;
 import IDisposable = monaco.IDisposable;
 
-export function register(
-	selector: string, defaults:LanguageServiceDefaults, worker: (first: Uri, ...more: Uri[]) => Promise<TypeScriptWorker>): IDisposable {
-
-	let disposables: IDisposable[] = [];
-	// disposables.push(monaco.languages.registerSuggest(selector, new SuggestAdapter(worker)));
-	disposables.push(monaco.languages.registerSignatureHelpProvider(selector, new SignatureHelpAdapter(worker)));
-	disposables.push(monaco.languages.registerHoverProvider(selector, new QuickInfoAdapter(worker)));
-	disposables.push(monaco.languages.registerDocumentHighlightProvider(selector, new OccurrencesAdapter(worker)));
-	disposables.push(monaco.languages.registerDefinitionProvider(selector, new DefinitionAdapter(worker)));
-	disposables.push(monaco.languages.registerReferenceProvider(selector, new ReferenceAdapter(worker)));
-	disposables.push(monaco.languages.registerDocumentSymbolProvider(selector, new OutlineAdapter(worker)));
-	disposables.push(monaco.languages.registerDocumentRangeFormattingEditProvider(selector, new FormatAdapter(worker)));
-	disposables.push(monaco.languages.registerOnTypeFormattingEditProvider(selector, new FormatOnTypeAdapter(worker)));
-	disposables.push(new DiagnostcsAdapter(defaults, selector, worker));
-
-	return {
-		dispose: () => {
-			disposables.forEach(d => d.dispose());
-			disposables = [];
-		}
-	};
-}
-
-abstract class Adapter {
+export abstract class Adapter {
 
 	constructor(protected _worker: (first:Uri, ...more:Uri[]) => Promise<TypeScriptWorker>) {
 	}
@@ -78,7 +55,7 @@ abstract class Adapter {
 
 // --- diagnostics --- ---
 
-class DiagnostcsAdapter extends Adapter {
+export class DiagnostcsAdapter extends Adapter {
 
 	private _disposables: IDisposable[] = [];
 	private _listener: { [uri: string]: IDisposable } = Object.create(null);
@@ -167,7 +144,7 @@ class DiagnostcsAdapter extends Adapter {
 
 // --- suggest ------
 
-// class SuggestAdapter extends Adapter implements monaco.languages.ISuggestSupport {
+// export class SuggestAdapter extends Adapter implements monaco.languages.ISuggestSupport {
 
 // 	public get triggerCharacters(): string[] {
 // 		return ['.'];
@@ -242,7 +219,7 @@ class DiagnostcsAdapter extends Adapter {
 // 	}
 // }
 
-class SignatureHelpAdapter extends Adapter implements monaco.languages.SignatureHelpProvider {
+export class SignatureHelpAdapter extends Adapter implements monaco.languages.SignatureHelpProvider {
 
 	public signatureHelpTriggerCharacters = ['(', ','];
 
@@ -293,7 +270,7 @@ class SignatureHelpAdapter extends Adapter implements monaco.languages.Signature
 
 // --- hover ------
 
-class QuickInfoAdapter extends Adapter implements monaco.languages.HoverProvider {
+export class QuickInfoAdapter extends Adapter implements monaco.languages.HoverProvider {
 
 	provideHover(model:monaco.editor.IReadOnlyModel, position:Position, token:CancellationToken): Thenable<monaco.languages.Hover> {
 		let resource = model.uri;
@@ -314,7 +291,7 @@ class QuickInfoAdapter extends Adapter implements monaco.languages.HoverProvider
 
 // --- occurrences ------
 
-class OccurrencesAdapter extends Adapter implements monaco.languages.DocumentHighlightProvider {
+export class OccurrencesAdapter extends Adapter implements monaco.languages.DocumentHighlightProvider {
 
 	public provideDocumentHighlights(model: monaco.editor.IReadOnlyModel, position: Position, token: CancellationToken): Thenable<monaco.languages.DocumentHighlight[]> {
 		const resource = model.uri;
@@ -337,7 +314,7 @@ class OccurrencesAdapter extends Adapter implements monaco.languages.DocumentHig
 
 // --- definition ------
 
-class DefinitionAdapter extends Adapter {
+export class DefinitionAdapter extends Adapter {
 
 	public provideDefinition(model:monaco.editor.IReadOnlyModel, position:Position, token:CancellationToken): Thenable<monaco.languages.Definition> {
 		const resource = model.uri;
@@ -365,7 +342,7 @@ class DefinitionAdapter extends Adapter {
 
 // --- references ------
 
-class ReferenceAdapter extends Adapter implements monaco.languages.ReferenceProvider {
+export class ReferenceAdapter extends Adapter implements monaco.languages.ReferenceProvider {
 
 	provideReferences(model:monaco.editor.IReadOnlyModel, position:Position, context: monaco.languages.ReferenceContext, token: CancellationToken): Thenable<monaco.languages.Location[]> {
 		const resource = model.uri;
@@ -393,7 +370,7 @@ class ReferenceAdapter extends Adapter implements monaco.languages.ReferenceProv
 
 // --- outline ------
 
-class OutlineAdapter extends Adapter implements monaco.languages.DocumentSymbolProvider {
+export class OutlineAdapter extends Adapter implements monaco.languages.DocumentSymbolProvider {
 
 	public provideDocumentSymbols(model:monaco.editor.IReadOnlyModel, token: CancellationToken): Thenable<monaco.languages.SymbolInformation[]> {
 		const resource = model.uri;
@@ -479,7 +456,7 @@ outlineTypeTable[Kind.localFunction] = monaco.languages.SymbolKind.Function;
 
 // --- formatting ----
 
-abstract class FormatHelper extends Adapter {
+export abstract class FormatHelper extends Adapter {
 	protected static _convertOptions(options: monaco.languages.IFormattingOptions): ts.FormatCodeOptions {
 		return {
 			ConvertTabsToSpaces: options.insertSpaces,
@@ -508,7 +485,7 @@ abstract class FormatHelper extends Adapter {
 	}
 }
 
-class FormatAdapter extends FormatHelper implements monaco.languages.DocumentRangeFormattingEditProvider {
+export class FormatAdapter extends FormatHelper implements monaco.languages.DocumentRangeFormattingEditProvider {
 
 	provideDocumentRangeFormattingEdits(model: monaco.editor.IReadOnlyModel, range: Range, options: monaco.languages.IFormattingOptions, token: CancellationToken): Thenable<monaco.editor.ISingleEditOperation[]> {
 		const resource = model.uri;
@@ -526,7 +503,7 @@ class FormatAdapter extends FormatHelper implements monaco.languages.DocumentRan
 	}
 }
 
-class FormatOnTypeAdapter extends FormatHelper implements monaco.languages.OnTypeFormattingEditProvider {
+export class FormatOnTypeAdapter extends FormatHelper implements monaco.languages.OnTypeFormattingEditProvider {
 
 	get autoFormatTriggerCharacters() {
 		return [';', '}', '\n'];
@@ -550,7 +527,7 @@ class FormatOnTypeAdapter extends FormatHelper implements monaco.languages.OnTyp
 /**
  * Hook a cancellation token to a WinJS Promise
  */
-export function wireCancellationToken<T>(token: CancellationToken, promise: Promise<T>): Thenable<T> {
+function wireCancellationToken<T>(token: CancellationToken, promise: Promise<T>): Thenable<T> {
 	token.onCancellationRequested(() => promise.cancel());
 	return promise;
 }

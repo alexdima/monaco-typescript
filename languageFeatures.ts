@@ -144,80 +144,100 @@ export class DiagnostcsAdapter extends Adapter {
 
 // --- suggest ------
 
-// export class SuggestAdapter extends Adapter implements monaco.languages.ISuggestSupport {
+interface MyCompletionItem extends monaco.languages.CompletionItem {
+	uri: Uri;
+	position: Position;
+}
 
-// 	public get triggerCharacters(): string[] {
-// 		return ['.'];
-// 	}
+export class SuggestAdapter extends Adapter implements monaco.languages.CompletionItemProvider {
 
-// 	provideCompletionItems(model:monaco.editor.IReadOnlyModel, position:Position, token:CancellationToken): Thenable<monaco.languages.ISuggestResult[]> {
-// 		const wordInfo = model.getWordUntilPosition(position);
-// 		const resource = model.uri;
-// 		const offset = this._positionToOffset(resource, position);
+	public get triggerCharacters(): string[] {
+		return ['.'];
+	}
 
-// 		return wireCancellationToken(token, this._worker(resource).then(worker => {
-// 			return worker.getCompletionsAtPosition(resource.toString(), offset);
-// 		}).then(info => {
-// 			if (!info) {
-// 				return;
-// 			}
-// 			let suggestions = info.entries.map(entry => {
-// 				return <monaco.languages.ISuggestion>{
-// 					label: entry.name,
-// 					codeSnippet: entry.name,
-// 					type: SuggestAdapter.asType(entry.kind)
-// 				};
-// 			});
+	provideCompletionItems(model:monaco.editor.IReadOnlyModel, position:Position, token:CancellationToken): Thenable<monaco.languages.CompletionItem[]> {
+		const wordInfo = model.getWordUntilPosition(position);
+		const resource = model.uri;
+		const offset = this._positionToOffset(resource, position);
 
-// 			return [{
-// 				currentWord: wordInfo && wordInfo.word,
-// 				suggestions
-// 			}];
-// 		}));
-// 	}
+		return wireCancellationToken(token, this._worker(resource).then(worker => {
+			return worker.getCompletionsAtPosition(resource.toString(), offset);
+		}).then(info => {
+			if (!info) {
+				return;
+			}
+			let suggestions: MyCompletionItem[] = info.entries.map(entry => {
+				return {
+					uri: resource,
+					position: position,
+					label: entry.name,
+					sortText: entry.sortText,
+					kind: SuggestAdapter.convertKind(entry.kind)
+				};
+			});
 
-// 	resolveCompletionItem(model:monaco.editor.IReadOnlyModel, position:Position, suggestion: monaco.languages.ISuggestion, token: CancellationToken): Thenable<monaco.languages.ISuggestion> {
-// 		const resource = model.uri;
+			return suggestions;
+		}));
+	}
 
-// 		return wireCancellationToken(token, this._worker(resource).then(worker => {
-// 			return worker.getCompletionEntryDetails(resource.toString(),
-// 				this._positionToOffset(resource, position),
-// 				suggestion.label);
+	resolveCompletionItem(item: monaco.languages.CompletionItem, token: CancellationToken): Thenable<monaco.languages.CompletionItem> {
+		let myItem = <MyCompletionItem>item;
+		const resource = myItem.uri;
+		const position = myItem.position;
 
-// 		}).then(details => {
-// 			if (!details) {
-// 				return suggestion;
-// 			}
-// 			return <monaco.languages.ISuggestion>{
-// 				label: details.name,
-// 				codeSnippet: details.name,
-// 				type: SuggestAdapter.asType(details.kind),
-// 				typeLabel: ts.displayPartsToString(details.displayParts),
-// 				documentationLabel: ts.displayPartsToString(details.documentation)
-// 			};
-// 		}));
-// 	}
+		return wireCancellationToken(token, this._worker(resource).then(worker => {
+			return worker.getCompletionEntryDetails(resource.toString(),
+				this._positionToOffset(resource, position),
+				myItem.label);
 
-// 	static asType(kind: string): monaco.languages.SuggestionType{
-// 		switch (kind) {
-// 			case 'getter':
-// 			case 'setting':
-// 			case 'constructor':
-// 			case 'method':
-// 			case 'property':
-// 				return 'property';
-// 			case 'function':
-// 			case 'local function':
-// 				return 'function';
-// 			case 'class':
-// 				return 'class';
-// 			case 'interface':
-// 				return 'interface';
-// 		}
+		}).then(details => {
+			if (!details) {
+				return myItem;
+			}
+			return <MyCompletionItem>{
+				uri: resource,
+				position: position,
+				label: details.name,
+				kind: SuggestAdapter.convertKind(details.kind),
+				detail: ts.displayPartsToString(details.displayParts),
+				documentation: ts.displayPartsToString(details.documentation)
+			};
+		}));
+	}
 
-// 		return 'variable';
-// 	}
-// }
+	private static convertKind(kind: string): monaco.languages.CompletionItemKind {
+		switch (kind) {
+			case Kind.primitiveType:
+			case Kind.keyword:
+				return monaco.languages.CompletionItemKind.Keyword;
+			case Kind.variable:
+			case Kind.localVariable:
+				return monaco.languages.CompletionItemKind.Variable;
+			case Kind.memberVariable:
+			case Kind.memberGetAccessor:
+			case Kind.memberSetAccessor:
+				return monaco.languages.CompletionItemKind.Field;
+			case Kind.function:
+			case Kind.memberFunction:
+			case Kind.constructSignature:
+			case Kind.callSignature:
+			case Kind.indexSignature:
+				return monaco.languages.CompletionItemKind.Function;
+			case Kind.enum:
+				return monaco.languages.CompletionItemKind.Enum;
+			case Kind.module:
+				return monaco.languages.CompletionItemKind.Module;
+			case Kind.class:
+				return monaco.languages.CompletionItemKind.Class;
+			case Kind.interface:
+				return monaco.languages.CompletionItemKind.Interface;
+			case Kind.warning:
+				return monaco.languages.CompletionItemKind.File;
+		}
+
+		return monaco.languages.CompletionItemKind.Property;
+	}
+}
 
 export class SignatureHelpAdapter extends Adapter implements monaco.languages.SignatureHelpProvider {
 

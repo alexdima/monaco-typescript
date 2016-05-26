@@ -41,7 +41,7 @@ function setupMode(defaults:LanguageServiceDefaults, modeId:string, language:Lan
 		return client.getLanguageServiceWorker(...[first].concat(more));
 	};
 
-	// disposables.push(monaco.languages.registerSuggest(selector, new languageFeatures.SuggestAdapter(worker)));
+	disposables.push(monaco.languages.registerCompletionItemProvider(modeId, new languageFeatures.SuggestAdapter(worker)));
 	disposables.push(monaco.languages.registerSignatureHelpProvider(modeId, new languageFeatures.SignatureHelpAdapter(worker)));
 	disposables.push(monaco.languages.registerHoverProvider(modeId, new languageFeatures.QuickInfoAdapter(worker)));
 	disposables.push(monaco.languages.registerDocumentHighlightProvider(modeId, new languageFeatures.OccurrencesAdapter(worker)));

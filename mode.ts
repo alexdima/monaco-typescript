@@ -51,11 +51,11 @@ function setupMode(defaults:LanguageServiceDefaults, modeId:string, language:Lan
 	disposables.push(monaco.languages.registerDocumentRangeFormattingEditProvider(modeId, new languageFeatures.FormatAdapter(worker)));
 	disposables.push(monaco.languages.registerOnTypeFormattingEditProvider(modeId, new languageFeatures.FormatOnTypeAdapter(worker)));
 	disposables.push(new languageFeatures.DiagnostcsAdapter(defaults, modeId, worker));
-	disposables.push(monaco.languages.registerLanguageConfiguration(modeId, richEditConfiguration));
-	disposables.push(monaco.languages.registerTokensProvider(modeId, createTokenizationSupport(language)));
+	disposables.push(monaco.languages.setLanguageConfiguration(modeId, richEditConfiguration));
+	disposables.push(monaco.languages.setTokensProvider(modeId, createTokenizationSupport(language)));
 }
 
-const richEditConfiguration:monaco.languages.IRichEditConfiguration = {
+const richEditConfiguration:monaco.languages.IRichLanguageConfiguration = {
 	wordPattern: /(-?\d*\.\d\w*)|([^\`\~\!\@\#\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g,
 
 	comments: {

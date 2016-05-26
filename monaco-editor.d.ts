@@ -13,12 +13,10 @@ declare module monaco.worker {
 
 declare module monaco.languages {
 
-    //@alex - I'd call this setLanguageConfiguration cos there is only 1 per language id
-    export function registerLanguageConfiguration(languageId: string, configuration: IRichEditConfiguration): IDisposable;
 
-    //@alex - unsure but I think it's also only 1 and the setTokensProvider
-    //@alex - unsure if TokenProvider is a good name, at least alig function name and 'support' name
-    export function registerTokensProvider(languageId: string, support: ITokenizationSupport2): IDisposable;
+    export function setLanguageConfiguration(languageId: string, configuration: IRichLanguageConfiguration): IDisposable;
+
+    export function setTokensProvider(languageId: string, support: TokensProvider): IDisposable;
 
     export function registerReferenceProvider(languageId: string, support: ReferenceProvider): IDisposable;
 
@@ -50,7 +48,6 @@ declare module monaco.languages {
 
     export function register(language: ILanguageExtensionPoint): void;
 
-    // @alex should this be eventish? use Event<T>, call it onWillLoadLanguage?
     export function onLanguage(languageId: string, callback: () => void): IDisposable;
 
     export interface CommentRule {
@@ -58,7 +55,7 @@ declare module monaco.languages {
         blockComment?: CharacterPair;
     }
 
-    export interface IRichEditConfiguration {
+    export interface IRichLanguageConfiguration {
         comments?: CommentRule;
         brackets?: CharacterPair[];
         wordPattern?: RegExp;
@@ -106,31 +103,27 @@ declare module monaco.languages {
         getId(): string;
     }
 
-    // @alex IXYZ2? is the counter still needed?
-    export interface IToken2 {
+    export interface IToken {
         startIndex: number;
         scopes: string | string[];
     }
 
-    // @alex same
-    export interface ILineTokens2 {
-        tokens: IToken2[];
-        endState: IState2;
+    export interface ILineTokens {
+        tokens: IToken[];
+        endState: IState;
         retokenize?: Promise<void>;
     }
 
-    export interface IState2 {
-        clone(): IState2;
-        equals(other: IState2): boolean;
+    export interface IState {
+        clone(): IState;
+        equals(other: IState): boolean;
     }
 
-    // @alex same
-    export interface ITokenizationSupport2 {
-        getInitialState(): IState2;
-        tokenize(line: string, state: IState2): ILineTokens2;
+    export interface TokensProvider {
+        getInitialState(): IState;
+        tokenize(line: string, state: IState): ILineTokens;
     }
 
-    // @alex same
     /**
      * A hover represents additional information for a symbol or word. Hovers are
      * rendered in a tooltip-like widget.
@@ -360,9 +353,6 @@ declare module monaco.languages {
 
 declare module monaco.editor {
 
-    // @alex We could think about exposing the service collection here (https://github.com/Microsoft/vscode/blob/master/src/vs/platform/instantiation/common/serviceCollection.ts#L13)
-    // with that we have service identifier end to end and no more service names.
-    export function setupServices(services: IEditorOverrideServices): IEditorOverrideServices;
 
     export function create(domElement: HTMLElement, options: IEditorConstructionOptions, services: IEditorOverrideServices): ICodeEditor;
 
@@ -412,11 +402,9 @@ declare module monaco.editor {
         mode?: string;
     }
 
-    // @alex empty interfaces?!
     export interface IDiffEditorConstructionOptions extends IDiffEditorOptions {
     }
 
-    // @alex empty interfaces?!
     export interface IEditorOverrideServices {
     }
 
@@ -489,7 +477,7 @@ declare module monaco {
         (progress: any): any;
     }
 
-    // @alex unsure about the name - it can be confused with the native promise.
+
     export class Promise<V> {
 
         constructor(init: (complete: TValueCallback<V>, error: (err: any) => void, progress: ProgressCallback) => void, oncancel?: any);
@@ -2351,8 +2339,6 @@ declare module monaco.editor {
         onDidChangeOptions(listener: (e: IModelOptionsChangedEvent) => void): IDisposable;
         onDidChangeMode(listener: (e: IModelModeChangedEvent) => void): IDisposable;
         onWillDispose(listener: () => void): IDisposable;
-        // @alex should we expose that?
-        addBulkListener(listener: BulkListenerCallback): IDisposable;
         /**
          * A unique identifier associated with this model.
          */
@@ -2419,8 +2405,7 @@ declare module monaco.editor {
          */
         newMode: languages.IMode;
     }
-    // @alex can we only expose this event to describe
-    // model modifications?
+
     /**
      * An event describing a change in the text of a model.
      */
@@ -3382,47 +3367,6 @@ declare module monaco.editor {
     export var EditorType: {
         ICodeEditor: string;
         IDiffEditor: string;
-    };
-
-    export var EventType: {
-        Disposed: string;
-        ConfigurationChanged: string;
-        ModelDispose: string;
-        ModelChanged: string;
-        ModelTokensChanged: string;
-        ModelModeChanged: string;
-        ModelModeSupportChanged: string;
-        ModelOptionsChanged: string;
-        ModelRawContentChanged: string;
-        ModelContentChanged2: string;
-        ModelRawContentChangedFlush: string;
-        ModelRawContentChangedLinesDeleted: string;
-        ModelRawContentChangedLinesInserted: string;
-        ModelRawContentChangedLineChanged: string;
-        EditorTextBlur: string;
-        EditorTextFocus: string;
-        EditorFocus: string;
-        EditorBlur: string;
-        ModelDecorationsChanged: string;
-        CursorPositionChanged: string;
-        CursorSelectionChanged: string;
-        CursorRevealRange: string;
-        CursorScrollRequest: string;
-        ViewFocusGained: string;
-        ViewFocusLost: string;
-        ViewFocusChanged: string;
-        ViewScrollChanged: string;
-        ViewZonesChanged: string;
-        ViewLayoutChanged: string;
-        ContextMenu: string;
-        MouseDown: string;
-        MouseUp: string;
-        MouseMove: string;
-        MouseLeave: string;
-        KeyDown: string;
-        KeyUp: string;
-        EditorLayout: string;
-        DiffUpdated: string;
     };
 
     export var Handler: {

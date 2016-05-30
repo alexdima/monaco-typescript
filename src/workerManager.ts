@@ -25,7 +25,7 @@ export class WorkerManager {
 	private _createClient(): Promise<TypeScriptWorker> {
 		// TODO: stop when idle
 		this._worker = monaco.editor.createWebWorker<TypeScriptWorker>({
-			moduleId: 'vs/language/monaco-typescript/out/worker',
+			moduleId: 'vs/language/typescript/worker',
 		});
 
 		let configChangeListener: IDisposable = null;

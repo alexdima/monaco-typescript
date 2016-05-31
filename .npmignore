@@ -1,5 +1,6 @@
 /lib/
 /out/
 /src/
-/gulpfile.json
+!/src/monaco-typescript.d.ts
+/gulpfile.js
 /tsconfig.json

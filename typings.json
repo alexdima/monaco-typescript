@@ -1,0 +1,4 @@
+{
+    "main": "./src/monaco-typescript.d.ts",
+    "global": true
+}

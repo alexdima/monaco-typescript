@@ -19,7 +19,7 @@ export interface DiagnosticsOptions {
 	noSyntaxValidation?: boolean;
 }
 
-export class LanguageServiceDefaults implements monaco.typescript.Configuration {
+export class LanguageServiceDefaults {
 
 	private _onDidChange = new Emitter<LanguageServiceDefaults>();
 	private _extraLibs: { [path: string]: string };

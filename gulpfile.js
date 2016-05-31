@@ -15,9 +15,19 @@ var uglify = require('gulp-uglify');
 var TYPESCRIPT_LIB_SOURCE = path.join(__dirname, 'node_modules', 'typescript', 'lib');
 var TYPESCRIPT_LIB_DESTINATION = path.join(__dirname, 'lib');
 
-var compilation = tsb.create(assign({ verbose: true }, require('./tsconfig.json').compilerOptions));
-
 gulp.task('release', ['compile'], function() {
+	function bundleOne(moduleId, exclude) {
+		return rjs({
+			baseUrl: '/out/',
+			name: 'vs/language/typescript/' + moduleId,
+			out: moduleId + '.js',
+			exclude: exclude,
+			paths: {
+				'vs/language/typescript': __dirname + '/out'
+			}
+		})
+	}
+
 	return merge(
 			bundleOne('monaco.contribution'),
 			bundleOne('lib/typescriptServices'),
@@ -28,30 +38,27 @@ gulp.task('release', ['compile'], function() {
 		.pipe(gulp.dest('./release/'));
 });
 
-function bundleOne(moduleId, exclude) {
-	return rjs({
-		baseUrl: '/out/',
-		name: 'vs/language/typescript/' + moduleId,
-		out: moduleId + '.js',
-		exclude: exclude,
-		paths: {
-			'vs/language/typescript': __dirname + '/out'
-		}
-	})
-}
 
-gulp.task('compile', ['import-typescript'], function() {
-	var compiled = merge(
-			gulp.src('src/*.ts', { base: '.' }),
-			gulp.src('lib/*.d.ts', { base: '.' })
-		)
-		.pipe(compilation());
+var compilation = tsb.create(assign({ verbose: true }, require('./tsconfig.json').compilerOptions));
+
+var tsSources = [
+	'src/*.ts',
+	'lib/*.d.ts',
+	'node_modules/monaco-editor-core/monaco.d.ts'
+];
+
+gulp.task('compile', function() {
 	return merge(
-			gulp.src('lib/*.js', { base: '.' }),
-			compiled
+			gulp.src('lib/*.js'),
+			gulp.src(tsSources).pipe(compilation())
 		)
 		.pipe(gulp.dest('out'));
 });
+
+gulp.task('watch', ['compile'], function() {
+	gulp.watch(tsSources, ['compile']);
+});
+
 
 /**
  * Import files from TypeScript's dist

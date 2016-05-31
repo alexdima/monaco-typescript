@@ -41,11 +41,7 @@ gulp.task('release', ['compile'], function() {
 
 var compilation = tsb.create(assign({ verbose: true }, require('./tsconfig.json').compilerOptions));
 
-var tsSources = [
-	'src/*.ts',
-	'lib/*.d.ts',
-	'node_modules/monaco-editor-core/monaco.d.ts'
-];
+var tsSources = require('./tsconfig.json').include;
 
 gulp.task('compile', function() {
 	return merge(

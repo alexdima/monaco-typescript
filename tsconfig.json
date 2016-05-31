@@ -1,10 +1,26 @@
 {
-    "compilerOptions": {
-        "module": "amd",
-        "outDir": "out",
-        "target": "es5"
-    },
-    "exclude": [
-        "node_modules"
-    ]
+  "_msg": "This is a generated file from tscgconfig.json. Please do not edit directly.",
+  "files": [
+    "src/languageFeatures.ts",
+    "src/mode.ts",
+    "src/monaco.contribution.ts",
+    "src/tokenization.ts",
+    "src/typescript.ts",
+    "src/worker.ts",
+    "src/workerManager.ts",
+    "lib/lib-es6-ts.d.ts",
+    "lib/lib-ts.d.ts",
+    "lib/typescriptServices.d.ts",
+    "node_modules/monaco-editor-core/monaco.d.ts"
+  ],
+  "compilerOptions": {
+    "module": "amd",
+    "outDir": "out",
+    "target": "es5"
+  },
+  "include": [
+    "src/*.ts",
+    "lib/*.d.ts",
+    "node_modules/monaco-editor-core/monaco.d.ts"
+  ]
 }

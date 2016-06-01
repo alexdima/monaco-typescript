@@ -9,7 +9,7 @@ import * as mode from './mode';
 declare var require:<T>(moduleId:[string], callback:(module:T)=>void)=>void;
 
 function withMode(callback:(module:typeof mode)=>void): void {
-	require<typeof mode>(['vs/language/typescript/mode'], callback);
+	require<typeof mode>(['vs/language/typescript/src/mode'], callback);
 }
 
 monaco.languages.register({

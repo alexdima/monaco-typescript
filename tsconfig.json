@@ -1,5 +1,5 @@
 {
-  "_msg": "This is a generated file from tscgconfig.json. Please do not edit directly.",
+  "_comment": "Do not edit directly. This is a generated file from tscgconfig.json. See https://github.com/Microsoft/TypeScript/issues/1927.",
   "files": [
     "src/languageFeatures.ts",
     "src/mode.ts",
@@ -18,7 +18,7 @@
     "outDir": "out",
     "target": "es5"
   },
-  "include": [
+  "filesGlob": [
     "src/*.ts",
     "lib/*.d.ts",
     "node_modules/monaco-editor-core/monaco.d.ts"

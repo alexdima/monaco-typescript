@@ -41,11 +41,11 @@ gulp.task('release', ['compile'], function() {
 
 var compilation = tsb.create(assign({ verbose: true }, require('./tsconfig.json').compilerOptions));
 
-var tsSources = require('./tsconfig.json').include;
+var tsSources = require('./tsconfig.json').filesGlob;
 
 gulp.task('compile', function() {
 	return merge(
-			gulp.src('lib/*.js'),
+			gulp.src('lib/*.js', { base: '.' }),
 			gulp.src(tsSources).pipe(compilation())
 		)
 		.pipe(gulp.dest('out'));

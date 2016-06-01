@@ -1,5 +1,14 @@
 {
-  "_comment": "Do not edit directly. This is a generated file from tscgconfig.json. See https://github.com/Microsoft/TypeScript/issues/1927.",
+  "compilerOptions": {
+    "module": "amd",
+    "outDir": "out",
+    "target": "es5"
+  },
+  "filesGlob": [
+    "src/*.ts",
+    "lib/*.d.ts",
+    "node_modules/monaco-editor-core/monaco.d.ts"
+  ],
   "files": [
     "src/languageFeatures.ts",
     "src/mode.ts",
@@ -11,16 +20,6 @@
     "lib/lib-es6-ts.d.ts",
     "lib/lib-ts.d.ts",
     "lib/typescriptServices.d.ts",
-    "node_modules/monaco-editor-core/monaco.d.ts"
-  ],
-  "compilerOptions": {
-    "module": "amd",
-    "outDir": "out",
-    "target": "es5"
-  },
-  "filesGlob": [
-    "src/*.ts",
-    "lib/*.d.ts",
     "node_modules/monaco-editor-core/monaco.d.ts"
   ]
 }

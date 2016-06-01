@@ -5,7 +5,7 @@
   "main": "monaco.editor.contribution.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "node_modules/.bin/gulp watch",
+    "watch": "node_modules/.bin/tscg -w",
     "prepublish": "node_modules/.bin/gulp release"
   },
   "author": "Microsoft Corporation",
@@ -19,6 +19,6 @@
     "monaco-editor-core": "^0.2.1",
     "object-assign": "^4.1.0",
     "typescript": "1.8.10",
-    "typescript-with-globs": "^0.1.1"
+    "typescript-with-globs": "^0.1.4"
   }
 }

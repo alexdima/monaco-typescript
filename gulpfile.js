@@ -29,10 +29,10 @@ gulp.task('release', ['compile'], function() {
 	}
 
 	return merge(
-			bundleOne('monaco.contribution'),
+			bundleOne('src/monaco.contribution'),
 			bundleOne('lib/typescriptServices'),
-			bundleOne('mode', ['vs/language/typescript/lib/typescriptServices']),
-			bundleOne('worker', ['vs/language/typescript/lib/typescriptServices'])
+			bundleOne('src/mode', ['vs/language/typescript/lib/typescriptServices']),
+			bundleOne('src/worker', ['vs/language/typescript/lib/typescriptServices'])
 		)
 		.pipe(uglify())
 		.pipe(gulp.dest('./release/'));

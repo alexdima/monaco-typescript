@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import * as ts from './lib/typescriptServices';
+import * as ts from '../lib/typescriptServices';
 import {TypeScriptWorker} from './worker';
 
 import Emitter = monaco.Emitter;

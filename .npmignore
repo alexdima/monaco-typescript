@@ -1,5 +1,6 @@
 /lib/
 /out/
 /src/
-/gulpfile.json
+/gulpfile.js
 /tsconfig.json
+/.npmignore

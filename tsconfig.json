@@ -6,6 +6,7 @@
   },
   "filesGlob": [
     "src/*.ts",
+    "test/*.ts",
     "lib/*.d.ts",
     "node_modules/monaco-editor-core/monaco.d.ts"
   ],
@@ -17,6 +18,9 @@
     "src/typescript.ts",
     "src/worker.ts",
     "src/workerManager.ts",
+    "test/assert.d.ts",
+    "test/mocha.d.ts",
+    "test/tokenization.test.ts",
     "lib/lib-es6-ts.d.ts",
     "lib/lib-ts.d.ts",
     "lib/typescriptServices.d.ts",

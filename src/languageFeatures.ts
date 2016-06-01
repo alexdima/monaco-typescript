@@ -5,7 +5,7 @@
 'use strict';
 
 import {LanguageServiceDefaults} from './typescript';
-import * as ts from './lib/typescriptServices';
+import * as ts from '../lib/typescriptServices';
 import {TypeScriptWorker} from './worker';
 
 import Uri = monaco.Uri;
@@ -23,25 +23,12 @@ export abstract class Adapter {
 
 	protected _positionToOffset(uri: Uri, position: monaco.IPosition): number {
 		let model = monaco.editor.getModel(uri);
-		let result = position.column - 1;
-		for (let i = 1; i < position.lineNumber; i++) {
-			result += model.getLineContent(i).length + model.getEOL().length;
-		}
-		return result;
+		return model.getOffsetAt(position);
 	}
 
 	protected _offsetToPosition(uri: Uri, offset: number): monaco.IPosition {
 		let model = monaco.editor.getModel(uri);
-		let lineNumber = 1;
-		while (true) {
-			let len = model.getLineContent(lineNumber).length + model.getEOL().length;
-			if (offset < len) {
-				break;
-			}
-			offset -= len;
-			lineNumber++;
-		}
-		return { lineNumber, column: 1 + offset };
+		return model.getPositionAt(offset);
 	}
 
 	protected _textSpanToRange(uri: Uri, span: ts.TextSpan): monaco.IRange {

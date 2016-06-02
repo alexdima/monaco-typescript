@@ -11,11 +11,13 @@ var path = require('path');
 var merge = require('merge-stream');
 var rjs = require('gulp-requirejs');
 var uglify = require('gulp-uglify');
+var rimraf = require('rimraf');
 
 var TYPESCRIPT_LIB_SOURCE = path.join(__dirname, 'node_modules', 'typescript', 'lib');
 var TYPESCRIPT_LIB_DESTINATION = path.join(__dirname, 'lib');
 
-gulp.task('release', ['compile'], function() {
+gulp.task('clean-release', function(cb) { rimraf('release', { maxBusyTries: 1 }, cb); });
+gulp.task('release', ['clean-release','compile'], function() {
 	function bundleOne(moduleId, exclude) {
 		return rjs({
 			baseUrl: '/out/',
@@ -43,7 +45,8 @@ var compilation = tsb.create(assign({ verbose: true }, require('./tsconfig.json'
 
 var tsSources = require('./tsconfig.json').filesGlob;
 
-gulp.task('compile', function() {
+gulp.task('clean-out', function(cb) { rimraf('out', { maxBusyTries: 1 }, cb); });
+gulp.task('compile', ['clean-out'], function() {
 	return merge(
 			gulp.src('lib/*.js', { base: '.' }),
 			gulp.src(tsSources).pipe(compilation())

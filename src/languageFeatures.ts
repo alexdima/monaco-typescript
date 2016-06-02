@@ -72,7 +72,7 @@ export class DiagnostcsAdapter extends Adapter {
 
 		this._disposables.push(monaco.editor.onDidCreateModel(onModelAdd));
 		this._disposables.push(monaco.editor.onWillDisposeModel(onModelRemoved));
-		this._disposables.push(monaco.editor.onDidChangeModelMode(event => {
+		this._disposables.push(monaco.editor.onDidChangeModelLanguage(event => {
 			onModelRemoved(event.model);
 			onModelAdd(event.model);
 		}));
@@ -108,7 +108,7 @@ export class DiagnostcsAdapter extends Adapter {
 				.reduce((p, c) => c.concat(p), [])
 				.map(d => this._convertDiagnostics(resource, d));
 
-			monaco.editor.setMarkers(monaco.editor.getModel(resource), this._selector, markers);
+			monaco.editor.setModelMarkers(monaco.editor.getModel(resource), this._selector, markers);
 		}).done(undefined, err => {
 			console.error(err);
 		});

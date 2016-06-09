@@ -52,7 +52,9 @@ gulp.task('release', ['clean-release','compile'], function() {
 			bundleOne('src/mode', ['vs/language/typescript/lib/typescriptServices']),
 			bundleOne('src/worker', ['vs/language/typescript/lib/typescriptServices'])
 		)
-		.pipe(uglify())
+		.pipe(uglify({
+			preserveComments: 'some'
+		}))
 		.pipe(es.through(function(data) {
 			data.contents = new Buffer(
 				BUNDLED_FILE_HEADER

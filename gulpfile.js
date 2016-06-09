@@ -12,12 +12,28 @@ var merge = require('merge-stream');
 var rjs = require('gulp-requirejs');
 var uglify = require('gulp-uglify');
 var rimraf = require('rimraf');
+var es = require('event-stream');
 
 var TYPESCRIPT_LIB_SOURCE = path.join(__dirname, 'node_modules', 'typescript', 'lib');
 var TYPESCRIPT_LIB_DESTINATION = path.join(__dirname, 'lib');
 
 gulp.task('clean-release', function(cb) { rimraf('release', { maxBusyTries: 1 }, cb); });
 gulp.task('release', ['clean-release','compile'], function() {
+
+	var sha1 = getGitVersion(__dirname);
+	var semver = require('./package.json').version;
+	var headerVersion = semver + '(' + sha1 + ')';
+
+	var BUNDLED_FILE_HEADER = [
+		'/*!-----------------------------------------------------------------------------',
+		' * Copyright (c) Microsoft Corporation. All rights reserved.',
+		' * monaco-typescript version: ' + headerVersion,
+		' * Released under the MIT license',
+		' * https://github.com/Microsoft/monaco-typescript/blob/master/LICENSE.md',
+		' *-----------------------------------------------------------------------------*/',
+		''
+	].join('\n');
+
 	function bundleOne(moduleId, exclude) {
 		return rjs({
 			baseUrl: '/out/',
@@ -37,6 +53,13 @@ gulp.task('release', ['clean-release','compile'], function() {
 			bundleOne('src/worker', ['vs/language/typescript/lib/typescriptServices'])
 		)
 		.pipe(uglify())
+		.pipe(es.through(function(data) {
+			data.contents = new Buffer(
+				BUNDLED_FILE_HEADER
+				+ data.contents.toString()
+			);
+			this.emit('data', data);
+		}))
 		.pipe(gulp.dest('./release/'));
 });
 
@@ -195,4 +218,54 @@ function escapeText(text) {
 	}
 	resultPieces.push(text.substring(startPos, len));
 	return resultPieces.join('');
+}
+
+function getGitVersion(repo) {
+	var git = path.join(repo, '.git');
+	var headPath = path.join(git, 'HEAD');
+	var head;
+
+	try {
+		head = fs.readFileSync(headPath, 'utf8').trim();
+	} catch (e) {
+		return void 0;
+	}
+
+	if (/^[0-9a-f]{40}$/i.test(head)) {
+		return head;
+	}
+
+	var refMatch = /^ref: (.*)$/.exec(head);
+
+	if (!refMatch) {
+		return void 0;
+	}
+
+	var ref = refMatch[1];
+	var refPath = path.join(git, ref);
+
+	try {
+		return fs.readFileSync(refPath, 'utf8').trim();
+	} catch (e) {
+		// noop
+	}
+
+	var packedRefsPath = path.join(git, 'packed-refs');
+	var refsRaw;
+
+	try {
+		refsRaw = fs.readFileSync(packedRefsPath, 'utf8').trim();
+	} catch (e) {
+		return void 0;
+	}
+
+	var refsRegex = /^([0-9a-f]{40})\s+(.+)$/gm;
+	var refsMatch;
+	var refs = {};
+
+	while (refsMatch = refsRegex.exec(refsRaw)) {
+		refs[refsMatch[2]] = refsMatch[1];
+	}
+
+	return refs[ref];
 }

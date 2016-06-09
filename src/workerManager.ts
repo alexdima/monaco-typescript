@@ -96,11 +96,7 @@ function toShallowCancelPromise<T>(p:Promise<T>): Promise<T> {
 	let r = new Promise<T>((c, e) => {
 		completeCallback = c;
 		errorCallback = e;
-	}, () => {
-		// cancel this promise but not the
-		// outer promise
-		errorCallback(new Error('Canceled'));
-	});
+	}, () => { });
 
 	p.then(completeCallback, errorCallback);
 

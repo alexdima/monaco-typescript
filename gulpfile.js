@@ -45,17 +45,19 @@ var compilation = tsb.create(assign({ verbose: true }, require('./tsconfig.json'
 
 var tsSources = require('./tsconfig.json').filesGlob;
 
-gulp.task('clean-out', function(cb) { rimraf('out', { maxBusyTries: 1 }, cb); });
-gulp.task('compile', ['clean-out'], function() {
+function compileTask() {
 	return merge(
-			gulp.src('lib/*.js', { base: '.' }),
-			gulp.src(tsSources).pipe(compilation())
-		)
-		.pipe(gulp.dest('out'));
-});
+		gulp.src('lib/*.js', { base: '.' }),
+		gulp.src(tsSources).pipe(compilation())
+	)
+	.pipe(gulp.dest('out'));
+}
 
+gulp.task('clean-out', function(cb) { rimraf('out', { maxBusyTries: 1 }, cb); });
+gulp.task('compile', ['clean-out'], compileTask);
+gulp.task('compile-without-clean', compileTask);
 gulp.task('watch', ['compile'], function() {
-	gulp.watch(tsSources, ['compile']);
+	gulp.watch(tsSources, ['compile-without-clean']);
 });
 
 
